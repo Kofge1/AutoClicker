@@ -57,8 +57,15 @@ This folder contains:
 
 ## Support
 
-If this app is useful to you, you can support development on Gumroad:
-https://kofge.gumroad.com/l/nkpwuc
+This project is currently free to use.
+
+If you want to support development, you can donate via USDT:
+
+```text
+ERC20 - 0x5701793453c1d73a527af74f9b615717052c4738
+TRC20 - TMTvgkSzEARmZ81HG2SE7nRf2KbC63tcBJ
+USDT0 - 0x5701793453c1d73a527af74f9b615717052c4738
+```
 
 ## Important Note
 
