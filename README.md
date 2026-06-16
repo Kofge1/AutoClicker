@@ -2,6 +2,8 @@
 
 A lightweight Windows auto clicker with profiles, hotkeys, humanized CPS, click patterns, tray status indicator and window targeting.
 
+The first launch may take a little longer while Windows prepares the self-contained executable.
+
 ## Features
 
 - Adjustable CPS from 1 to 100.
