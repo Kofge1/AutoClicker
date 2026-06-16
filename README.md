@@ -64,7 +64,6 @@ If you want to support development, you can donate via USDT:
 ```text
 ERC20 - 0x5701793453c1d73a527af74f9b615717052c4738
 TRC20 - TMTvgkSzEARmZ81HG2SE7nRf2KbC63tcBJ
-USDT0 - 0x5701793453c1d73a527af74f9b615717052c4738
 ```
 
 Please double-check the network before sending. Transfers sent through the wrong network may be lost.
