@@ -61,6 +61,7 @@ public sealed partial class MainForm : Form
     private InfoPill _txtPanicHotkey = null!;
     private InfoPill _txtShowWindowHotkey = null!;
     private InfoPill _txtTogglePowerHotkey = null!;
+    private InfoPill _txtProfileHotkey = null!;
 
     private PillDropdown _cmbProfiles = null!;
     private Label _lblStartupProfile = null!;
@@ -81,6 +82,7 @@ public sealed partial class MainForm : Form
     private Button _btnApply = null!;
     private Button _btnClose = null!;
     private Label _lblStatus = null!;
+    private Label _lblVersion = null!;
     private RoundedPanel _statusCard = null!;
 
     private bool _suppressUiEvents;
@@ -99,10 +101,12 @@ public sealed partial class MainForm : Form
     private string _lastValidPanicHotkey = "F12";
     private string _lastValidShowWindowHotkey = "F10";
     private string _lastValidTogglePowerHotkey = "F7";
+    private string _lastValidProfileHotkey = "F9";
     private string _lastValidMode = "hold";
     private string? _recordingTargetName;
     private string _mouseButtonHeldByClicker = string.Empty;
     private long _recordStartTick;
+    private long _lastTargetMismatchLogTick;
     private CancellationTokenSource? _clickCts;
     private Icon? _enabledStatusIcon;
     private Icon? _disabledStatusIcon;
@@ -164,7 +168,11 @@ public sealed partial class MainForm : Form
         if (disposing)
         {
             _clickCts?.Cancel();
-            ReleaseClickerMouseState(ClickStopReason.Shutdown);
+            if (_isActive || _mouseButtonHeldByClicker.Length > 0)
+            {
+                ReleaseClickerMouseState(ClickStopReason.Shutdown);
+            }
+
             _recordTimeoutTimer.Dispose();
             _trayIcon.Dispose();
             _trayMenu.Dispose();

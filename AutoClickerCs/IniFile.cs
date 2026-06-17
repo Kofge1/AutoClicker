@@ -46,6 +46,21 @@ public sealed class IniFile
         WriteString(section, key, value ? "1" : "0");
     }
 
+    public void WriteSection(string section, IEnumerable<KeyValuePair<string, string>> values)
+    {
+        var builder = new StringBuilder();
+        foreach (var pair in values)
+        {
+            builder.Append(pair.Key);
+            builder.Append('=');
+            builder.Append(pair.Value);
+            builder.Append('\0');
+        }
+
+        builder.Append('\0');
+        NativeMethods.WritePrivateProfileString(section, null, builder.ToString(), _path);
+    }
+
     public void DeleteKey(string section, string key)
     {
         NativeMethods.WritePrivateProfileString(section, key, null, _path);

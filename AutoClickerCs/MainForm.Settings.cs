@@ -26,6 +26,7 @@ public sealed partial class MainForm
         _settings.PanicHotkey = _ini.ReadString("Main", "PanicHotkey", "F12");
         _settings.ShowWindowHotkey = _ini.ReadString("Main", "ShowWindowHotkey", "F10");
         _settings.TogglePowerHotkey = _ini.ReadString("Main", "TogglePowerHotkey", "F7");
+        _settings.ProfileHotkey = _ini.ReadString("Main", "ProfileHotkey", "F9");
         _settings.StartMinimized = _ini.ReadBool("Main", "StartMinimized");
         _settings.MinimizeToTrayOnMinimize = _ini.ReadBool("Main", "MinimizeToTrayOnMinimize");
         _settings.RememberLastProfile = false;
@@ -91,6 +92,7 @@ public sealed partial class MainForm
         _ini.WriteString("Main", "PanicHotkey", _settings.PanicHotkey);
         _ini.WriteString("Main", "ShowWindowHotkey", _settings.ShowWindowHotkey);
         _ini.WriteString("Main", "TogglePowerHotkey", _settings.TogglePowerHotkey);
+        _ini.WriteString("Main", "ProfileHotkey", _settings.ProfileHotkey);
         _ini.WriteBool("Main", "StartMinimized", _settings.StartMinimized);
         _ini.WriteBool("Main", "MinimizeToTrayOnMinimize", _settings.MinimizeToTrayOnMinimize);
         _ini.WriteBool("Main", "RememberLastProfile", _settings.RememberLastProfile);
@@ -355,29 +357,33 @@ public sealed partial class MainForm
     private void SaveProfileSettings(string profileId)
     {
         var section = GetProfileSectionName(profileId);
-        _ini.WriteString(section, "Name", GetProfileNameById(profileId));
-        _ini.WriteBool(section, "AutoEnabled", _settings.AutoEnabled);
-        _ini.WriteString(section, "Mode", _settings.CurrentMode);
-        _ini.WriteString(section, "Hotkey", _settings.TriggerKey);
-        _ini.WriteString(section, "PanicHotkey", _settings.PanicHotkey);
-        _ini.WriteString(section, "ShowWindowHotkey", _settings.ShowWindowHotkey);
-        _ini.WriteString(section, "TogglePowerHotkey", _settings.TogglePowerHotkey);
-        _ini.WriteBool(section, "CloseToTrayOnClose", _settings.CloseToTrayOnClose);
-        _ini.WriteBool(section, "RestrictToFocusedWindow", _settings.RestrictToFocusedWindow);
-        _ini.WriteString(section, "TargetWindowTitle", _settings.TargetWindowTitle);
-        _ini.WriteString(section, "TargetWindowClass", _settings.TargetWindowClass);
-        _ini.WriteString(section, "TargetWindowExe", _settings.TargetWindowExe);
-        _ini.WriteString(section, "ClickButton", _settings.ClickButton);
-        _ini.WriteString(section, "ClickPattern", _settings.ClickPattern);
-        _ini.WriteString(section, "ClickRateMode", _settings.ClickRateMode);
-        _ini.WriteInt(section, "BurstClickCount", _settings.BurstClickCount);
-        _ini.WriteInt(section, "BurstGapMs", _settings.BurstGapMs);
-        _ini.WriteInt(section, "HoldThenBurstHoldMs", _settings.HoldThenBurstHoldMs);
-        _ini.WriteInt(section, "PressDelayMs", _settings.PressDelayMs);
-        _ini.WriteInt(section, "ReleaseDelayMs", _settings.ReleaseDelayMs);
-        _ini.WriteInt(section, "CPS", _settings.Cps);
-        _ini.WriteBool(section, "HumanizedCpsEnabled", _settings.HumanizedCpsEnabled);
-        _ini.WriteString(section, "HumanizedPreset", _settings.HumanizedPreset);
+        _ini.WriteSection(section,
+        [
+            new("Name", GetProfileNameById(profileId)),
+            new("AutoEnabled", _settings.AutoEnabled ? "1" : "0"),
+            new("Mode", _settings.CurrentMode),
+            new("Hotkey", _settings.TriggerKey),
+            new("PanicHotkey", _settings.PanicHotkey),
+            new("ShowWindowHotkey", _settings.ShowWindowHotkey),
+            new("TogglePowerHotkey", _settings.TogglePowerHotkey),
+            new("ProfileHotkey", _settings.ProfileHotkey),
+            new("CloseToTrayOnClose", _settings.CloseToTrayOnClose ? "1" : "0"),
+            new("RestrictToFocusedWindow", _settings.RestrictToFocusedWindow ? "1" : "0"),
+            new("TargetWindowTitle", _settings.TargetWindowTitle),
+            new("TargetWindowClass", _settings.TargetWindowClass),
+            new("TargetWindowExe", _settings.TargetWindowExe),
+            new("ClickButton", _settings.ClickButton),
+            new("ClickPattern", _settings.ClickPattern),
+            new("ClickRateMode", _settings.ClickRateMode),
+            new("BurstClickCount", _settings.BurstClickCount.ToString()),
+            new("BurstGapMs", _settings.BurstGapMs.ToString()),
+            new("HoldThenBurstHoldMs", _settings.HoldThenBurstHoldMs.ToString()),
+            new("PressDelayMs", _settings.PressDelayMs.ToString()),
+            new("ReleaseDelayMs", _settings.ReleaseDelayMs.ToString()),
+            new("CPS", _settings.Cps.ToString()),
+            new("HumanizedCpsEnabled", _settings.HumanizedCpsEnabled ? "1" : "0"),
+            new("HumanizedPreset", _settings.HumanizedPreset)
+        ]);
     }
 
     private void LoadProfileSettings(string profileId)
@@ -389,6 +395,7 @@ public sealed partial class MainForm
         _settings.PanicHotkey = _ini.ReadString(section, "PanicHotkey", _ini.ReadString("Main", "PanicHotkey", "F12"));
         _settings.ShowWindowHotkey = _ini.ReadString(section, "ShowWindowHotkey", _ini.ReadString("Main", "ShowWindowHotkey", "F10"));
         _settings.TogglePowerHotkey = _ini.ReadString(section, "TogglePowerHotkey", _ini.ReadString("Main", "TogglePowerHotkey", "F7"));
+        _settings.ProfileHotkey = _ini.ReadString(section, "ProfileHotkey", _ini.ReadString("Main", "ProfileHotkey", "F9"));
         _settings.CloseToTrayOnClose = _ini.ReadBool(section, "CloseToTrayOnClose", _ini.ReadBool("Main", "CloseToTrayOnClose", false));
         _settings.RestrictToFocusedWindow = _ini.ReadBool(section, "RestrictToFocusedWindow", _ini.ReadBool("Main", "RestrictToFocusedWindow"));
         _settings.TargetWindowTitle = _ini.ReadString(section, "TargetWindowTitle", _ini.ReadString("Main", "TargetWindowTitle", ""));
@@ -443,23 +450,19 @@ public sealed partial class MainForm
 
     private void WriteProfilesMetadata()
     {
-        _ini.WriteString("Profiles", "ActiveId", _activeProfileId);
-        _ini.WriteString("Profiles", "DefaultId", _defaultProfileId);
-        _ini.WriteInt("Profiles", "Count", _profiles.Count);
-
+        var values = new List<KeyValuePair<string, string>>
+        {
+            new("ActiveId", _activeProfileId),
+            new("DefaultId", _defaultProfileId),
+            new("Count", _profiles.Count.ToString())
+        };
         for (var i = 0; i < _profiles.Count; i++)
         {
             var profile = _profiles[i];
-            _ini.WriteString("Profiles", $"Profile{i + 1}", profile.Id);
-            _ini.WriteString(GetProfileSectionName(profile.Id), "Name", profile.Name);
+            values.Add(new KeyValuePair<string, string>($"Profile{i + 1}", profile.Id));
         }
 
-        var staleIndex = _profiles.Count + 1;
-        while (_ini.ReadString("Profiles", $"Profile{staleIndex}", "") is { Length: > 0 })
-        {
-            _ini.DeleteKey("Profiles", $"Profile{staleIndex}");
-            staleIndex++;
-        }
+        _ini.WriteSection("Profiles", values);
     }
 
     private string GetStoredActiveProfileId() => _ini.ReadString("Profiles", "ActiveId", DefaultProfileId);
@@ -478,6 +481,7 @@ public sealed partial class MainForm
             _txtPanicHotkey.Text = FormatHotkeyDisplay(GetEffectivePanicHotkey(_settings.PanicHotkey));
             _txtShowWindowHotkey.Text = FormatHotkeyDisplay(GetEffectiveShowWindowHotkey(_settings.ShowWindowHotkey));
             _txtTogglePowerHotkey.Text = FormatHotkeyDisplay(GetEffectiveTogglePowerHotkey(_settings.TogglePowerHotkey));
+            _txtProfileHotkey.Text = FormatHotkeyDisplay(GetEffectiveProfileHotkey(_settings.ProfileHotkey));
             _trkCps.Value = ClampCps(_settings.Cps);
             _txtCps.Text = _settings.Cps.ToString();
             _lblCpsValue.Text = _settings.Cps.ToString();
@@ -514,27 +518,31 @@ public sealed partial class MainForm
         var newPanicKey = NormalizeStoredHotkey(_settings.PanicHotkey, "F12");
         var newShowWindowKey = NormalizeStoredHotkey(_settings.ShowWindowHotkey, "F10");
         var newTogglePowerKey = NormalizeStoredHotkey(_settings.TogglePowerHotkey, "F7");
+        var newProfileKey = NormalizeStoredHotkey(_settings.ProfileHotkey, "F9");
         var newMode = NormalizeMode(_settings.CurrentMode);
 
         if (IsRestrictedBareServiceMouseHotkey(newPanicKey)
             || IsRestrictedBareServiceMouseHotkey(newShowWindowKey)
-            || IsRestrictedBareServiceMouseHotkey(newTogglePowerKey))
+            || IsRestrictedBareServiceMouseHotkey(newTogglePowerKey)
+            || IsRestrictedBareServiceMouseHotkey(newProfileKey))
         {
-            var repaired = RepairUnsafeServiceHotkeys(newKey, newPanicKey, newShowWindowKey, newTogglePowerKey);
+            var repaired = RepairUnsafeServiceHotkeys(newKey, newPanicKey, newShowWindowKey, newTogglePowerKey, newProfileKey);
             newKey = repaired.main;
             newPanicKey = repaired.panic;
             newShowWindowKey = repaired.show;
             newTogglePowerKey = repaired.toggle;
+            newProfileKey = repaired.profile;
             unsafeServiceHotkeys = true;
         }
 
-        if (!ValidateDistinctHotkeys(newKey, newPanicKey, newShowWindowKey, newTogglePowerKey))
+        if (!ValidateDistinctHotkeys(newKey, newPanicKey, newShowWindowKey, newTogglePowerKey, newProfileKey))
         {
-            ShowProfileMessage("Main, panic, show-window and power-toggle hotkeys must be different.");
+            ShowProfileMessage("Main, panic, show-window, power-toggle and profile hotkeys must be different.");
             _settings.TriggerKey = _lastValidTriggerKey;
             _settings.PanicHotkey = _lastValidPanicHotkey;
             _settings.ShowWindowHotkey = _lastValidShowWindowHotkey;
             _settings.TogglePowerHotkey = _lastValidTogglePowerHotkey;
+            _settings.ProfileHotkey = _lastValidProfileHotkey;
             _settings.CurrentMode = _lastValidMode;
             ApplySettingsToUi();
             return;
@@ -544,6 +552,7 @@ public sealed partial class MainForm
         _settings.PanicHotkey = newPanicKey;
         _settings.ShowWindowHotkey = newShowWindowKey;
         _settings.TogglePowerHotkey = newTogglePowerKey;
+        _settings.ProfileHotkey = newProfileKey;
         _settings.CurrentMode = newMode;
         RememberCurrentHotkeysAsValid();
         ApplySettingsToUi();
@@ -553,7 +562,7 @@ public sealed partial class MainForm
 
         if (unsafeServiceHotkeys)
         {
-            ShowProfileMessage("Panic, Show Window and Toggle Power cannot use bare LMB, RMB or MMB. Side mouse buttons are allowed.");
+            ShowProfileMessage("Panic, Show Window, Toggle Power and Next Profile cannot use bare LMB, RMB or MMB. Side mouse buttons are allowed.");
         }
     }
 
@@ -563,6 +572,7 @@ public sealed partial class MainForm
         _lastValidPanicHotkey = GetEffectivePanicHotkey(_settings.PanicHotkey);
         _lastValidShowWindowHotkey = GetEffectiveShowWindowHotkey(_settings.ShowWindowHotkey);
         _lastValidTogglePowerHotkey = GetEffectiveTogglePowerHotkey(_settings.TogglePowerHotkey);
+        _lastValidProfileHotkey = GetEffectiveProfileHotkey(_settings.ProfileHotkey);
         _lastValidMode = NormalizeMode(_settings.CurrentMode);
     }
 
@@ -942,19 +952,19 @@ public sealed partial class MainForm
             return;
         }
 
-        SaveSettings();
+        SaveSettings(syncStartupShortcut: false);
         var profileId = GenerateProfileId(profileName);
         _profiles.Add(new ProfileInfo { Id = profileId, Name = profileName });
         _activeProfileId = profileId;
         SaveProfileSettings(profileId);
-        SaveSettings();
+        WriteProfilesMetadata();
         ApplySettingsToUi();
         UpdateStatus();
     }
 
     private void DuplicateProfile()
     {
-        SaveSettings();
+        SaveSettings(syncStartupShortcut: false);
         StopClicking(ClickStopReason.ProfileChange);
         var sourceName = GetActiveProfileName();
         var duplicateName = BuildDuplicateProfileName(sourceName);
@@ -963,7 +973,7 @@ public sealed partial class MainForm
         _profiles.Add(new ProfileInfo { Id = profileId, Name = duplicateName });
         _activeProfileId = profileId;
         LoadProfileSettings(_activeProfileId);
-        SaveSettings();
+        WriteProfilesMetadata();
         ApplySettingsToUi();
         UpdateStatus();
     }
@@ -1003,7 +1013,7 @@ public sealed partial class MainForm
         }
 
         profile.Name = newName;
-        SaveSettings();
+        SaveSettings(syncStartupShortcut: false);
         RefreshProfileControls();
         UpdateStatus();
     }
@@ -1035,7 +1045,7 @@ public sealed partial class MainForm
         }
 
         LoadProfileSettings(_activeProfileId);
-        SaveSettings();
+        SaveSettings(syncStartupShortcut: false);
         ApplySettingsToUi();
         UpdateStatus();
     }

@@ -8,6 +8,7 @@ public sealed class AppSettings
     public string PanicHotkey { get; set; } = "F12";
     public string ShowWindowHotkey { get; set; } = "F10";
     public string TogglePowerHotkey { get; set; } = "F7";
+    public string ProfileHotkey { get; set; } = "F9";
     public bool StartMinimized { get; set; }
     public bool MinimizeToTrayOnMinimize { get; set; }
     public bool RememberLastProfile { get; set; }

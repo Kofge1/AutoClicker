@@ -7,6 +7,8 @@ namespace AutoClickerCs;
 
 public sealed partial class MainForm
 {
+    private const int MinimumSyntheticPressMs = 4;
+
     private enum ClickStopReason
     {
         Manual,
@@ -186,7 +188,9 @@ public sealed partial class MainForm
         {
             SendMouseDown(buttonName);
             mouseDownSent = true;
-            if (!DelayRespectingCancellation(_settings.PressDelayMs, token, sessionVersion))
+            // Some games poll mouse state per frame and can miss same-tick down/up pairs.
+            var pressDelayMs = Math.Max(_settings.PressDelayMs, MinimumSyntheticPressMs);
+            if (!DelayRespectingCancellation(pressDelayMs, token, sessionVersion))
             {
                 return false;
             }
@@ -282,7 +286,11 @@ public sealed partial class MainForm
             }
         };
 
-        NativeMethods.SendInput(1, [input], Marshal.SizeOf<NativeMethods.Input>());
+        var sent = NativeMethods.SendInput(1, [input], Marshal.SizeOf<NativeMethods.Input>());
+        if (sent != 1)
+        {
+            InputDiagnostics.Write($"SendInputMouseFailed flags={flags} sent={sent} error={Marshal.GetLastWin32Error()}");
+        }
     }
 
     private bool DelayRespectingCancellation(int delayMs, CancellationToken token, int sessionVersion)
@@ -420,20 +428,17 @@ public sealed partial class MainForm
             return;
         }
 
-        InputDiagnostics.Write($"PrepareForServiceHotkey token={chord.PrimaryToken} active={_isActive} held={_mouseButtonHeldByClicker}");
-        if (_isActive || _mouseButtonHeldByClicker.Length > 0)
+        var hasClickerMouseState = _isActive || _mouseButtonHeldByClicker.Length > 0 || MouseButtonSafety.HasPressedButtons;
+        InputDiagnostics.Write($"PrepareForServiceHotkey token={chord.PrimaryToken} active={_isActive} held={_mouseButtonHeldByClicker} tracked={MouseButtonSafety.HasPressedButtons}");
+        if (hasClickerMouseState)
         {
             ReleaseClickerMouseState(ClickStopReason.ServiceHotkey);
         }
-        else
-        {
-            ReleaseClickerMouseState(ClickReleaseMode.Soft);
-        }
 
-        ReleaseSuppressedServiceHotkeyButton(chord.PrimaryToken);
+        ReleaseSuppressedServiceHotkeyButton(chord.PrimaryToken, hasClickerMouseState);
     }
 
-    private void ReleaseSuppressedServiceHotkeyButton(string token)
+    private void ReleaseSuppressedServiceHotkeyButton(string token, bool sendButtonUp)
     {
         if (!string.Equals(token, "XButton1", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(token, "XButton2", StringComparison.OrdinalIgnoreCase))
@@ -442,8 +447,12 @@ public sealed partial class MainForm
         }
 
         _inputHook.ClearTokenDownState(token);
-        MouseButtonSafety.ForceReleaseButton(token);
-        InputDiagnostics.Write($"ReleaseSuppressedServiceHotkeyButton token={token}");
+        if (sendButtonUp)
+        {
+            MouseButtonSafety.ForceReleaseButton(token);
+        }
+
+        InputDiagnostics.Write($"ReleaseSuppressedServiceHotkeyButton token={token} sendButtonUp={sendButtonUp}");
     }
 
     private void UpdateStatus(bool refreshTrayMenu = true)
@@ -568,22 +577,53 @@ public sealed partial class MainForm
         var activeExe = NativeMethods.GetWindowProcessName(active);
         var activeClass = NativeMethods.GetWindowClass(active);
         var activeTitle = NativeMethods.GetWindowTitle(active);
+        var matches = TargetWindowMatches(activeTitle, activeClass, activeExe);
+        if (!matches)
+        {
+            LogTargetWindowMismatch(activeTitle, activeClass, activeExe);
+        }
+
+        return matches;
+    }
+
+    private bool TargetWindowMatches(string activeTitle, string activeClass, string activeExe)
+    {
+        var hasTarget = false;
+        var matches = false;
+
         if (_settings.TargetWindowExe.Length > 0)
         {
-            return string.Equals(activeExe, _settings.TargetWindowExe, StringComparison.OrdinalIgnoreCase);
+            hasTarget = true;
+            matches |= string.Equals(activeExe, _settings.TargetWindowExe, StringComparison.OrdinalIgnoreCase);
         }
 
         if (_settings.TargetWindowClass.Length > 0)
         {
-            return string.Equals(activeClass, _settings.TargetWindowClass, StringComparison.Ordinal);
+            hasTarget = true;
+            matches |= string.Equals(activeClass, _settings.TargetWindowClass, StringComparison.Ordinal);
         }
 
         if (_settings.TargetWindowTitle.Length > 0)
         {
-            return string.Equals(activeTitle, _settings.TargetWindowTitle, StringComparison.Ordinal);
+            hasTarget = true;
+            matches |= string.Equals(activeTitle, _settings.TargetWindowTitle, StringComparison.Ordinal);
         }
 
-        return true;
+        return !hasTarget || matches;
+    }
+
+    private void LogTargetWindowMismatch(string activeTitle, string activeClass, string activeExe)
+    {
+        var now = Environment.TickCount64;
+        if (now - _lastTargetMismatchLogTick < 1000)
+        {
+            return;
+        }
+
+        _lastTargetMismatchLogTick = now;
+        InputDiagnostics.Write(
+            $"TargetWindowMismatch activeExe={activeExe} activeClass={activeClass} activeTitle={activeTitle} " +
+            $"targetExe={_settings.TargetWindowExe} targetClass={_settings.TargetWindowClass} targetTitle={_settings.TargetWindowTitle}");
     }
 
     private double HighResNowMs()
@@ -607,10 +647,14 @@ public sealed partial class MainForm
             return false;
         }
 
-        return (_settings.AutoEnabled && ShouldSuppressConfiguredMouseChord(GetEffectiveTriggerKey(_settings.TriggerKey), token, ctrl, shift, alt))
+        var triggerMatches = ShouldSuppressConfiguredMouseChord(GetEffectiveTriggerKey(_settings.TriggerKey), token, ctrl, shift, alt);
+        var shouldSuppressTrigger = _settings.AutoEnabled && triggerMatches && (_isActive || CanClickInCurrentContext());
+
+        return shouldSuppressTrigger
             || ShouldSuppressConfiguredMouseChord(GetEffectivePanicHotkey(_settings.PanicHotkey), token, ctrl, shift, alt)
             || ShouldSuppressConfiguredMouseChord(GetEffectiveShowWindowHotkey(_settings.ShowWindowHotkey), token, ctrl, shift, alt)
-            || ShouldSuppressConfiguredMouseChord(GetEffectiveTogglePowerHotkey(_settings.TogglePowerHotkey), token, ctrl, shift, alt);
+            || ShouldSuppressConfiguredMouseChord(GetEffectiveTogglePowerHotkey(_settings.TogglePowerHotkey), token, ctrl, shift, alt)
+            || ShouldSuppressConfiguredMouseChord(GetEffectiveProfileHotkey(_settings.ProfileHotkey), token, ctrl, shift, alt);
     }
 
     private bool IsOwnWindowForeground()
@@ -819,14 +863,15 @@ public sealed partial class MainForm
             || chord.PrimaryToken.Equals("MButton", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static (string main, string panic, string show, string toggle) RepairUnsafeServiceHotkeys(string mainKey, string panicKey, string showWindowKey, string togglePowerKey)
+    private static (string main, string panic, string show, string toggle, string profile) RepairUnsafeServiceHotkeys(string mainKey, string panicKey, string showWindowKey, string togglePowerKey, string profileKey)
     {
         var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var main = GetSafeUniqueHotkey(mainKey, ["F2", "F3", "F4"], used);
         var panic = GetSafeUniqueHotkey(IsRestrictedBareServiceMouseHotkey(panicKey) ? "" : panicKey, ["F12", "F11", "F10"], used);
         var show = GetSafeUniqueHotkey(IsRestrictedBareServiceMouseHotkey(showWindowKey) ? "" : showWindowKey, ["F10", "F9", "F8"], used);
         var toggle = GetSafeUniqueHotkey(IsRestrictedBareServiceMouseHotkey(togglePowerKey) ? "" : togglePowerKey, ["F7", "F6", "F5"], used);
-        return (main, panic, show, toggle);
+        var profile = GetSafeUniqueHotkey(IsRestrictedBareServiceMouseHotkey(profileKey) ? "" : profileKey, ["F9", "F8", "F6"], used);
+        return (main, panic, show, toggle, profile);
     }
 
     private static string GetSafeUniqueHotkey(string preferredKey, string[] fallbackKeys, ISet<string> usedHotkeys)
@@ -884,6 +929,7 @@ public sealed partial class MainForm
         _settings.PanicHotkey = GetSafeUniqueHotkey(IsRestrictedBareServiceMouseHotkey(_settings.PanicHotkey) ? "" : _settings.PanicHotkey, ["F12", "F11", "F10"], used);
         _settings.ShowWindowHotkey = GetSafeUniqueHotkey(IsRestrictedBareServiceMouseHotkey(_settings.ShowWindowHotkey) ? "" : _settings.ShowWindowHotkey, ["F10", "F9", "F8"], used);
         _settings.TogglePowerHotkey = GetSafeUniqueHotkey(IsRestrictedBareServiceMouseHotkey(_settings.TogglePowerHotkey) ? "" : _settings.TogglePowerHotkey, ["F7", "F6", "F5"], used);
+        _settings.ProfileHotkey = GetSafeUniqueHotkey(IsRestrictedBareServiceMouseHotkey(_settings.ProfileHotkey) ? "" : _settings.ProfileHotkey, ["F9", "F8", "F6"], used);
     }
 
     private void SyncStartupShortcut()
@@ -1004,7 +1050,7 @@ public sealed partial class MainForm
         var targetIni = new IniFile(targetFile);
         var keys = new[]
         {
-            "AutoEnabled", "Mode", "Hotkey", "PanicHotkey", "ShowWindowHotkey", "TogglePowerHotkey",
+            "AutoEnabled", "Mode", "Hotkey", "PanicHotkey", "ShowWindowHotkey", "TogglePowerHotkey", "ProfileHotkey",
             "CloseToTrayOnClose", "RestrictToFocusedWindow", "TargetWindowTitle", "TargetWindowClass", "TargetWindowExe",
             "ClickButton", "ClickPattern", "ClickRateMode", "BurstClickCount", "BurstGapMs", "HoldThenBurstHoldMs",
             "PressDelayMs", "ReleaseDelayMs", "CPS", "HumanizedCpsEnabled", "HumanizedPreset"
@@ -1027,6 +1073,7 @@ public sealed partial class MainForm
             "PanicHotkey" => sourceIni.ReadString(sourceSection, key, "F12"),
             "ShowWindowHotkey" => sourceIni.ReadString(sourceSection, key, "F10"),
             "TogglePowerHotkey" => sourceIni.ReadString(sourceSection, key, "F7"),
+            "ProfileHotkey" => sourceIni.ReadString(sourceSection, key, "F9"),
             "CloseToTrayOnClose" => sourceIni.ReadString(sourceSection, key, "1"),
             "RestrictToFocusedWindow" => sourceIni.ReadString(sourceSection, key, "0"),
             "TargetWindowTitle" => sourceIni.ReadString(sourceSection, key, ""),
@@ -1071,13 +1118,25 @@ public sealed partial class MainForm
             return;
         }
 
-        SaveSettings();
+        SaveProfileSettings(_activeProfileId);
         StopClicking(ClickStopReason.ProfileChange);
         _activeProfileId = profileId;
         LoadProfileSettings(_activeProfileId);
-        SaveSettings();
+        SaveSettings(syncStartupShortcut: false);
         ApplySettingsToUi();
         UpdateStatus();
+    }
+
+    private void SwitchToNextProfile()
+    {
+        if (_profiles.Count <= 1)
+        {
+            return;
+        }
+
+        var currentIndex = GetProfileIndexById(_activeProfileId);
+        var nextIndex = currentIndex <= 0 ? 0 : currentIndex % _profiles.Count;
+        SwitchToProfileById(_profiles[nextIndex].Id);
     }
 
     private int GetProfileIndexById(string profileId) => FindProfileIndexById(profileId, _profiles);
@@ -1217,6 +1276,8 @@ public sealed partial class MainForm
 
     private static string GetEffectiveTogglePowerHotkey(string hotkey) => string.IsNullOrWhiteSpace(hotkey) ? "F7" : hotkey;
 
+    private static string GetEffectiveProfileHotkey(string hotkey) => string.IsNullOrWhiteSpace(hotkey) ? "F9" : hotkey;
+
     private string GetEffectiveHotkeyForTarget(string targetName)
     {
         return targetName switch
@@ -1224,6 +1285,7 @@ public sealed partial class MainForm
             "panicHotkey" => GetEffectivePanicHotkey(_settings.PanicHotkey),
             "showWindowHotkey" => GetEffectiveShowWindowHotkey(_settings.ShowWindowHotkey),
             "togglePowerHotkey" => GetEffectiveTogglePowerHotkey(_settings.TogglePowerHotkey),
+            "profileHotkey" => GetEffectiveProfileHotkey(_settings.ProfileHotkey),
             _ => GetEffectiveTriggerKey(_settings.TriggerKey)
         };
     }
@@ -1240,6 +1302,9 @@ public sealed partial class MainForm
                 break;
             case "togglePowerHotkey":
                 _settings.TogglePowerHotkey = value;
+                break;
+            case "profileHotkey":
+                _settings.ProfileHotkey = value;
                 break;
             default:
                 _settings.TriggerKey = value;
@@ -1354,6 +1419,7 @@ public sealed partial class MainForm
         _settings.PanicHotkey = "F12";
         _settings.ShowWindowHotkey = "F10";
         _settings.TogglePowerHotkey = "F7";
+        _settings.ProfileHotkey = "F9";
         ApplySettings();
     }
 
@@ -1372,13 +1438,21 @@ public sealed partial class MainForm
 
     protected override void WndProc(ref Message m)
     {
-        if (m.Msg == NativeMethods.WmNclbuttonUp
-            && m.WParam.ToInt64() == NativeMethods.HtMinButton
-            && _startupCompleted
-            && _settings.MinimizeToTrayOnMinimize)
+        if (_startupCompleted && _settings.MinimizeToTrayOnMinimize)
         {
-            BeginInvoke(new Action(() => HideToTray(true)));
-            return;
+            if (m.Msg == NativeMethods.WmNclbuttonDown
+                && m.WParam.ToInt64() == NativeMethods.HtMinButton)
+            {
+                HideToTray(true);
+                return;
+            }
+
+            if (m.Msg == NativeMethods.WmSyscommand
+                && (m.WParam.ToInt64() & 0xFFF0) == NativeMethods.ScMinimize)
+            {
+                HideToTray(true);
+                return;
+            }
         }
 
         base.WndProc(ref m);

@@ -2,11 +2,7 @@
 
 A lightweight Windows auto clicker with profiles, hotkeys, humanized CPS, click patterns, tray status indicator and window targeting.
 
-Useful for repetitive clicking workflows and games where automation is allowed.
-
 The first launch may take a little longer while Windows prepares the self-contained executable.
-
-Windows SmartScreen or antivirus software may warn about the executable because it is unsigned and new. The source code is available in this repository, so you can review it or build the app yourself.
 
 ## Features
 
@@ -17,7 +13,7 @@ Windows SmartScreen or antivirus software may warn about the executable because 
 - Click patterns: Standard, Burst, Double and Hold+Burst.
 - Rate behavior: Locked and Amplified.
 - Profiles for saving and switching setups.
-- Custom hotkeys for Panic Stop, Show Window and Toggle Power.
+- Custom hotkeys for Panic Stop, Show Window, Toggle Power and Next Profile.
 - Window targeting: click only while a selected app/window is active.
 - Tray support with an ON/OFF status indicator.
 - Settings, profiles and logs are stored in `%LocalAppData%\AutoClicker`, so the executable folder stays clean.

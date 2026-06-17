@@ -64,6 +64,9 @@ public sealed partial class MainForm
             case "togglePowerHotkey":
                 _txtTogglePowerHotkey.Text = value;
                 break;
+            case "profileHotkey":
+                _txtProfileHotkey.Text = value;
+                break;
             default:
                 _txtTriggerHotkey.Text = value;
                 break;
@@ -86,6 +89,10 @@ public sealed partial class MainForm
                 _txtTogglePowerHotkey.Invalidate();
                 _txtTogglePowerHotkey.Update();
                 break;
+            case "profileHotkey":
+                _txtProfileHotkey.Invalidate();
+                _txtProfileHotkey.Update();
+                break;
             default:
                 _txtTriggerHotkey.Invalidate();
                 _txtTriggerHotkey.Update();
@@ -103,6 +110,8 @@ public sealed partial class MainForm
         _txtShowWindowHotkey.Update();
         _txtTogglePowerHotkey.Invalidate();
         _txtTogglePowerHotkey.Update();
+        _txtProfileHotkey.Invalidate();
+        _txtProfileHotkey.Update();
     }
 
     private void OnGlobalInputChanged(object? sender, GlobalInputEventArgs e)
@@ -147,6 +156,14 @@ public sealed partial class MainForm
             return;
         }
 
+        if (MatchesChordPress(GetEffectiveChord(GetEffectiveProfileHotkey(_settings.ProfileHotkey)), e))
+        {
+            InputDiagnostics.Write($"ServiceHotkey NextProfile token={e.Token}");
+            PrepareForServiceHotkey(GetEffectiveProfileHotkey(_settings.ProfileHotkey));
+            SwitchToNextProfile();
+            return;
+        }
+
         var trigger = GetEffectiveChord(GetEffectiveTriggerKey(_settings.TriggerKey));
         if (_settings.CurrentMode == "hold")
         {
@@ -158,6 +175,11 @@ public sealed partial class MainForm
 
             if (MatchesChordPress(trigger, e) && _settings.AutoEnabled && !_isActive)
             {
+                if (!CanClickInCurrentContext())
+                {
+                    return;
+                }
+
                 StartHoldClicking();
                 return;
             }
@@ -172,6 +194,11 @@ public sealed partial class MainForm
 
         if (MatchesChordPress(trigger, e) && _settings.AutoEnabled)
         {
+            if (!_isActive && !CanClickInCurrentContext())
+            {
+                return;
+            }
+
             ToggleClicking();
         }
     }
@@ -201,7 +228,7 @@ public sealed partial class MainForm
 
     private void StartHoldClicking()
     {
-        if (!_settings.AutoEnabled || _isActive)
+        if (!_settings.AutoEnabled || _isActive || !CanClickInCurrentContext())
         {
             return;
         }
@@ -224,6 +251,11 @@ public sealed partial class MainForm
         {
             StopClicking(ClickStopReason.Manual);
             ShowTransientBalloon("CLICKER OFF");
+            return;
+        }
+
+        if (!CanClickInCurrentContext())
+        {
             return;
         }
 
@@ -257,7 +289,17 @@ public sealed partial class MainForm
 
     private void PanicStop()
     {
-        StopClicking(ClickStopReason.Panic, updateStatus: false);
+        if (_isActive || _mouseButtonHeldByClicker.Length > 0 || MouseButtonSafety.HasPressedButtons)
+        {
+            StopClicking(ClickStopReason.Panic, updateStatus: false);
+        }
+        else
+        {
+            _clickCts?.Cancel();
+            Interlocked.Increment(ref _clickSessionVersion);
+            InputDiagnostics.Write("PanicStop quiet close no active clicker state");
+        }
+
         SaveSettings();
         _allowClose = true;
         Close();
@@ -303,43 +345,98 @@ public sealed partial class MainForm
 
     private void ShowFromTrayHotkey()
     {
-        if (!_settings.CloseToTrayOnClose && !_settings.MinimizeToTrayOnMinimize)
-        {
-            return;
-        }
-
-        if (Visible && Focused)
+        if (Visible && WindowState != FormWindowState.Minimized)
         {
             HideToTray();
             return;
         }
 
-        if (!Visible)
-        {
-            ShowFromTray();
-            return;
-        }
-
-        HideToTray();
+        ShowFromTray();
     }
 
     private void ShowFromTray()
     {
-        SetTrayWindowMode(false);
-        ShowInTaskbar = true;
-        Show();
+        var previousOpacity = Opacity > 0 ? Opacity : 1.0;
+        Opacity = 0;
+        PrepareWindowForTaskbar();
         WindowState = FormWindowState.Normal;
-        NativeMethods.ShowWindow(Handle, 9);
-        NativeMethods.ShowWindow(Handle, 5);
+        Show();
+        PrepareWindowForTaskbar();
+        EnsureWindowOnScreen();
+        Refresh();
+        Opacity = previousOpacity;
+        BringWindowToFront();
+        RefreshTrayMenu();
+    }
+
+    private void BringWindowToFront()
+    {
+        PrepareWindowForTaskbar();
+        if (WindowState == FormWindowState.Minimized)
+        {
+            WindowState = FormWindowState.Normal;
+        }
+
+        if (!Visible)
+        {
+            Show();
+        }
+
+        EnsureWindowOnScreen();
+        PrepareWindowForTaskbar();
+        NativeMethods.ShowWindow(Handle, NativeMethods.SwRestore);
+        NativeMethods.ShowWindow(Handle, NativeMethods.SwShow);
+        NativeMethods.SetWindowPos(
+            Handle,
+            NativeMethods.HwndTopmost,
+            0,
+            0,
+            0,
+            0,
+            NativeMethods.SwpNomove | NativeMethods.SwpNosize | NativeMethods.SwpNoactivate);
+        NativeMethods.SetWindowPos(
+            Handle,
+            NativeMethods.HwndNotopmost,
+            0,
+            0,
+            0,
+            0,
+            NativeMethods.SwpNomove | NativeMethods.SwpNosize);
+        NativeMethods.SetForegroundWindow(Handle);
+        BringToFront();
         Activate();
         RefreshTrayMenu();
     }
 
+    private void PrepareWindowForTaskbar()
+    {
+        ShowInTaskbar = true;
+        SetTrayWindowMode(false);
+    }
+
+    private void EnsureWindowOnScreen()
+    {
+        var bounds = Bounds;
+        foreach (var screen in Screen.AllScreens)
+        {
+            if (screen.WorkingArea.IntersectsWith(bounds))
+            {
+                return;
+            }
+        }
+
+        var area = Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 1200, 800);
+        StartPosition = FormStartPosition.Manual;
+        Location = new Point(
+            area.Left + Math.Max(0, (area.Width - Width) / 2),
+            area.Top + Math.Max(0, (area.Height - Height) / 2));
+    }
+
     private void HideToTray(bool silent = false)
     {
-        SetTrayWindowMode(true);
-        ShowInTaskbar = false;
         Hide();
+        ShowInTaskbar = false;
+        SetTrayWindowMode(true);
         if (!silent)
         {
             ShowTransientBalloon("Running in tray");

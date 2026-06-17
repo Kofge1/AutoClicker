@@ -69,6 +69,17 @@ internal static class MouseButtonSafety
         }
     }
 
+    internal static bool HasPressedButtons
+    {
+        get
+        {
+            lock (Sync)
+            {
+                return ClickerPressedButtons.Count > 0;
+            }
+        }
+    }
+
     internal static void ReleaseAllPressedButtonsExcept(string? preservedButton)
     {
         var normalizedPreserved = NormalizeButtonName(preservedButton);

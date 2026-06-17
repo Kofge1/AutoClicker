@@ -75,10 +75,13 @@ internal static class NativeMethods
     internal const int VkNumLock = 0x90;
     internal const int VkScroll = 0x91;
     internal const int GwlExstyle = -20;
+    internal const int WmNclbuttonDown = 0x00A1;
     internal const int WmNclbuttonUp = 0x00A2;
     internal const int WmSyscommand = 0x0112;
     internal const int ScMinimize = 0xF020;
     internal const int HtMinButton = 8;
+    internal const int SwShow = 5;
+    internal const int SwRestore = 9;
     internal const uint WsExAppwindow = 0x00040000;
     internal const uint WsExToolwindow = 0x00000080;
     internal const uint SwpNosize = 0x0001;
@@ -86,6 +89,8 @@ internal static class NativeMethods
     internal const uint SwpNozorder = 0x0004;
     internal const uint SwpFramechanged = 0x0020;
     internal const uint SwpNoactivate = 0x0010;
+    internal static readonly IntPtr HwndTopmost = new(-1);
+    internal static readonly IntPtr HwndNotopmost = new(-2);
     internal static readonly nuint AutoClickerExtraInfo = unchecked((nuint)0xAC10C11C);
 
     [StructLayout(LayoutKind.Sequential)]
@@ -216,7 +221,7 @@ internal static class NativeMethods
     internal static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
     [DllImport("user32.dll", SetLastError = true)]
-    internal static extern bool SendInput(uint nInputs, Input[] pInputs, int cbSize);
+    internal static extern uint SendInput(uint nInputs, Input[] pInputs, int cbSize);
 
     [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr", SetLastError = true)]
     internal static extern nint SetWindowLongPtr(IntPtr hWnd, int nIndex, nint dwNewLong);

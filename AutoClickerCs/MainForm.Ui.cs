@@ -161,6 +161,20 @@ public sealed partial class MainForm
         };
         _statusCard.Controls.Add(_lblStatus);
 
+        _lblVersion = new Label
+        {
+            Left = 985,
+            Top = 552,
+            Width = 88,
+            Height = 44,
+            Anchor = AnchorStyles.Right | AnchorStyles.Bottom,
+            Text = AppVersion.Display,
+            TextAlign = ContentAlignment.MiddleCenter,
+            BackColor = Color.Transparent,
+            ForeColor = UiTheme.TextMuted,
+            Font = new Font("Segoe UI Semibold", 16f, FontStyle.Bold)
+        };
+
         _tabBodyShell.Controls.Add(_tabHeader);
         _tabBodyShell.Controls.Add(_tabs);
         _tabBodyShell.Controls.Add(_btnApply);
@@ -169,6 +183,7 @@ public sealed partial class MainForm
         _btnClose.BringToFront();
         Controls.Add(_tabBodyShell);
         Controls.Add(_statusCard);
+        Controls.Add(_lblVersion);
 
         LayoutFooterButtons();
         Resize += OnFormResize;
@@ -444,12 +459,14 @@ public sealed partial class MainForm
     {
         var tab = CreateTabPage("Hotkey");
         var card = CreateCard(tab, StandardTabCardLeft, StandardTabCardTop, StandardTabCardWidth, StandardTabCardHeight, "Service Hotkeys");
-        BuildHotkeyRow(card, "Panic Stop", 30, 54, out _txtPanicHotkey, out var btnPanic, "panicHotkey");
-        BuildHotkeyRow(card, "Show Window", 30, 154, out _txtShowWindowHotkey, out var btnShow, "showWindowHotkey");
-        BuildHotkeyRow(card, "Toggle Power", 30, 258, out _txtTogglePowerHotkey, out var btnToggle, "togglePowerHotkey");
+        BuildHotkeyRow(card, "Panic Stop", 30, 51, out _txtPanicHotkey, out var btnPanic, "panicHotkey");
+        BuildHotkeyRow(card, "Show Window", 30, 121, out _txtShowWindowHotkey, out var btnShow, "showWindowHotkey");
+        BuildHotkeyRow(card, "Toggle Power", 30, 191, out _txtTogglePowerHotkey, out var btnToggle, "togglePowerHotkey");
+        BuildHotkeyRow(card, "Next Profile", 30, 261, out _txtProfileHotkey, out var btnProfile, "profileHotkey");
         _ = btnPanic;
         _ = btnShow;
         _ = btnToggle;
+        _ = btnProfile;
 
         var btnReset = CreateButton("Reset All Hotkeys", 560, 179, 300, card, (_, _) => ResetHotkeysToDefaults());
         _ = btnReset;
@@ -984,20 +1001,9 @@ public sealed partial class MainForm
 
     private void OnFormShown(object? sender, EventArgs e)
     {
-        if (_settings.StartMinimized)
-        {
-            BeginInvoke(new Action(() =>
-            {
-                _startupCompleted = true;
-                HideToTray(true);
-            }));
-            return;
-        }
-
         BeginInvoke(new Action(() =>
         {
-            SetTrayWindowMode(false);
-            ShowInTaskbar = true;
+            PrepareWindowForTaskbar();
             if (_tabs.TabCount > 0 && _tabs.SelectedIndex < 0)
             {
                 _tabs.SelectedIndex = 0;
@@ -1005,6 +1011,13 @@ public sealed partial class MainForm
 
             UpdateTabHeaderVisuals();
             _tabHeader?.Invalidate();
+
+            if (_settings.StartMinimized)
+            {
+                _startupCompleted = true;
+                HideToTray(true);
+                return;
+            }
 
             if (!Visible)
             {
