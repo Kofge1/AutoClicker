@@ -10,6 +10,11 @@ static class Program
         try
         {
             Log("Main start");
+            if (AdminLaunchHelper.RelaunchAsAdministratorIfRequested(Log))
+            {
+                return;
+            }
+
             AppDomain.CurrentDomain.ProcessExit += (_, _) => ReleaseMouseButtonsSafely("ProcessExit");
             Application.ApplicationExit += (_, _) => ReleaseMouseButtonsSafely("ApplicationExit");
             AppDomain.CurrentDomain.UnhandledException += (_, e) =>

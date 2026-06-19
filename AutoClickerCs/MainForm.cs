@@ -74,6 +74,7 @@ public sealed partial class MainForm : Form
     private Button _btnRefreshWindows = null!;
     private Label _lblTargetWindow = null!;
     private CheckBox _chkStartMinimized = null!;
+    private CheckBox _chkRunAsAdministrator = null!;
     private CheckBox _chkRunOnStartup = null!;
     private CheckBox _chkRememberProfile = null!;
     private CheckBox _chkMinimizeToTray = null!;

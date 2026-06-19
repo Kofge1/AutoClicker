@@ -31,6 +31,7 @@ public sealed partial class MainForm
         _settings.MinimizeToTrayOnMinimize = _ini.ReadBool("Main", "MinimizeToTrayOnMinimize");
         _settings.RememberLastProfile = false;
         _settings.RunOnWindowsStartup = _ini.ReadBool("Main", "RunOnWindowsStartup");
+        _settings.RunAsAdministrator = _ini.ReadBool("Main", "RunAsAdministrator");
         _settings.CloseToTrayOnClose = _ini.ReadBool("Main", "CloseToTrayOnClose", false);
         _settings.RestrictToFocusedWindow = _ini.ReadBool("Main", "RestrictToFocusedWindow");
         _settings.TargetWindowTitle = _ini.ReadString("Main", "TargetWindowTitle", "");
@@ -97,6 +98,7 @@ public sealed partial class MainForm
         _ini.WriteBool("Main", "MinimizeToTrayOnMinimize", _settings.MinimizeToTrayOnMinimize);
         _ini.WriteBool("Main", "RememberLastProfile", _settings.RememberLastProfile);
         _ini.WriteBool("Main", "RunOnWindowsStartup", _settings.RunOnWindowsStartup);
+        _ini.WriteBool("Main", "RunAsAdministrator", _settings.RunAsAdministrator);
         _ini.WriteBool("Main", "CloseToTrayOnClose", _settings.CloseToTrayOnClose);
         _ini.WriteBool("Main", "RestrictToFocusedWindow", _settings.RestrictToFocusedWindow);
         _ini.WriteString("Main", "TargetWindowTitle", _settings.TargetWindowTitle);
@@ -163,6 +165,7 @@ public sealed partial class MainForm
         _ini.WriteBool("Main", "MinimizeToTrayOnMinimize", _settings.MinimizeToTrayOnMinimize);
         _ini.WriteBool("Main", "RememberLastProfile", _settings.RememberLastProfile);
         _ini.WriteBool("Main", "RunOnWindowsStartup", _settings.RunOnWindowsStartup);
+        _ini.WriteBool("Main", "RunAsAdministrator", _settings.RunAsAdministrator);
         _ini.WriteBool("Main", "CloseToTrayOnClose", _settings.CloseToTrayOnClose);
 
         if (syncStartupShortcut)
@@ -494,6 +497,7 @@ public sealed partial class MainForm
             _rbRateLocked.Checked = NormalizeClickRateMode(_settings.ClickRateMode) == "Ordinary";
             _rbRateAmplified.Checked = NormalizeClickRateMode(_settings.ClickRateMode) == "Amplified";
             _chkStartMinimized.Checked = _settings.StartMinimized;
+            _chkRunAsAdministrator.Checked = _settings.RunAsAdministrator;
             _chkRunOnStartup.Checked = _settings.RunOnWindowsStartup;
             _chkRememberProfile.Checked = false;
             _chkMinimizeToTray.Checked = _settings.MinimizeToTrayOnMinimize;
@@ -1161,6 +1165,23 @@ public sealed partial class MainForm
 
         _settings.RunOnWindowsStartup = _chkRunOnStartup.Checked;
         QueueWindowAndTraySettingsSave(syncStartupShortcut: true);
+    }
+
+    private void OnRunAsAdministratorToggle()
+    {
+        if (_suppressUiEvents)
+        {
+            return;
+        }
+
+        _settings.RunAsAdministrator = _chkRunAsAdministrator.Checked;
+        QueueWindowAndTraySettingsSave();
+        MessageBox.Show(
+            this,
+            "Restart AutoClicker for this setting to take effect.",
+            "Restart required",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
     }
 
     private void OnRestrictWindowToggle()

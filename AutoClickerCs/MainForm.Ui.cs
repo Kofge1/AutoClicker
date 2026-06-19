@@ -530,9 +530,10 @@ public sealed partial class MainForm
         var leftCard = CreateCard(tab, StandardTabCardLeft, StandardTabCardTop, 444, StandardTabCardHeight, "Window and Tray");
         var rightCard = CreateCard(tab, StandardTabCardLeft + 470, StandardTabCardTop, 486, StandardTabCardHeight, "Window Target");
 
-        _chkStartMinimized = CreateOptionToggleRow(leftCard, "Start hidden to tray", 28, 103, 222, 276, (_, _) => OnStartMinimizedToggle());
-        _chkRunOnStartup = CreateOptionToggleRow(leftCard, "Run on startup", 28, 153, 222, 276, (_, _) => OnRunOnStartupToggle());
-        _chkRememberProfile = CreateOptionToggleRow(leftCard, "Remember profile", 28, 203, 222, 276, (_, _) => OnRememberLastProfileToggle());
+        _chkRunAsAdministrator = CreateOptionToggleRow(leftCard, "Run as administrator", 28, 78, 222, 276, (_, _) => OnRunAsAdministratorToggle());
+        _chkStartMinimized = CreateOptionToggleRow(leftCard, "Start hidden to tray", 28, 128, 222, 276, (_, _) => OnStartMinimizedToggle());
+        _chkRunOnStartup = CreateOptionToggleRow(leftCard, "Run on startup", 28, 178, 222, 276, (_, _) => OnRunOnStartupToggle());
+        _chkRememberProfile = CreateOptionToggleRow(leftCard, "Remember profile", 28, 228, 222, 276, (_, _) => OnRememberLastProfileToggle());
         if (leftCard.Controls.Count >= 2 && leftCard.Controls[^2] is Label rememberProfileLabel)
         {
             rememberProfileLabel.Visible = false;
@@ -540,8 +541,8 @@ public sealed partial class MainForm
         }
         _chkRememberProfile.Visible = false;
         _chkRememberProfile.Enabled = false;
-        _chkMinimizeToTray = CreateOptionToggleRow(leftCard, "Minimize button to tray", 28, 203, 222, 276, (_, _) => OnMinimizeToTrayToggle());
-        _chkCloseToTray = CreateOptionToggleRow(leftCard, "Close window to tray", 28, 253, 222, 276, (_, _) => OnCloseToTrayToggle());
+        _chkMinimizeToTray = CreateOptionToggleRow(leftCard, "Minimize button to tray", 28, 228, 222, 276, (_, _) => OnMinimizeToTrayToggle());
+        _chkCloseToTray = CreateOptionToggleRow(leftCard, "Close window to tray", 28, 278, 222, 276, (_, _) => OnCloseToTrayToggle());
 
         _chkRestrictWindow = CreateOptionToggleRow(rightCard, "Only while selected window is focused", 28, 69, 266, 332, (_, _) => OnRestrictWindowToggle());
         _cmbTargetWindow = CreatePillDropdown(28, 123, 320, rightCard, ["Any window"]);

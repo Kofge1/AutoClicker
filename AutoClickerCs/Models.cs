@@ -13,6 +13,7 @@ public sealed class AppSettings
     public bool MinimizeToTrayOnMinimize { get; set; }
     public bool RememberLastProfile { get; set; }
     public bool RunOnWindowsStartup { get; set; }
+    public bool RunAsAdministrator { get; set; }
     public bool CloseToTrayOnClose { get; set; }
     public bool RestrictToFocusedWindow { get; set; }
     public string TargetWindowTitle { get; set; } = string.Empty;

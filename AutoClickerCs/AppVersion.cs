@@ -2,5 +2,5 @@ namespace AutoClickerCs;
 
 internal static class AppVersion
 {
-    internal const string Display = "v0.11.0";
+    internal const string Display = "v0.12.0";
 }
