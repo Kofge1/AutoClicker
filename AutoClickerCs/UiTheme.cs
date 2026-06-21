@@ -732,11 +732,14 @@ public sealed class PillDropdown : Control
         _menu = new ContextMenuStrip
         {
             ShowImageMargin = false,
-            Renderer = new ToolStripProfessionalRenderer(new PillMenuColorTable())
+            Padding = Padding.Empty,
+            Renderer = new PillMenuRenderer()
         };
         _menu.Font = Font;
         _menu.ForeColor = ForeColor;
         _menu.BackColor = UiTheme.Surface;
+        _menu.Opened += (_, _) => UpdateMenuRegion();
+        _menu.SizeChanged += (_, _) => UpdateMenuRegion();
     }
 
     public IReadOnlyList<string> Items => _items;
@@ -922,13 +925,33 @@ public sealed class PillDropdown : Control
         {
             var menuItem = new ToolStripMenuItem(item)
             {
-                Checked = string.Equals(item, SelectedItem, StringComparison.OrdinalIgnoreCase)
+                AutoSize = false,
+                Checked = string.Equals(item, SelectedItem, StringComparison.OrdinalIgnoreCase),
+                ForeColor = ForeColor,
+                Height = 29,
+                Padding = new Padding(12, 0, 12, 0),
+                Width = Math.Max(120, Width)
             };
             menuItem.Click += (_, _) => SelectedItem = item;
             _menu.Items.Add(menuItem);
         }
 
+        _menu.MinimumSize = new Size(Width, 0);
         _menu.Show(this, new Point(0, Height + 2));
+    }
+
+    private void UpdateMenuRegion()
+    {
+        if (_menu.Width <= 0 || _menu.Height <= 0)
+        {
+            return;
+        }
+
+        using var path = UiTheme.CreateRoundedRectPath(
+            new RectangleF(0, 0, Math.Max(1, _menu.Width - 1), Math.Max(1, _menu.Height - 1)),
+            Radius);
+        _menu.Region?.Dispose();
+        _menu.Region = new Region(path);
     }
 
     private void UpdateRegion()
@@ -955,17 +978,77 @@ public sealed class PillDropdown : Control
         return path;
     }
 
-    private sealed class PillMenuColorTable : ProfessionalColorTable
+    private sealed class PillMenuRenderer : ToolStripProfessionalRenderer
     {
-        public override Color ToolStripDropDownBackground => UiTheme.Surface;
-        public override Color MenuBorder => UiTheme.Border;
-        public override Color MenuItemBorder => UiTheme.Border;
-        public override Color MenuItemSelected => UiTheme.AccentSecondary;
-        public override Color MenuItemSelectedGradientBegin => UiTheme.AccentSecondary;
-        public override Color MenuItemSelectedGradientEnd => UiTheme.AccentSecondary;
-        public override Color ImageMarginGradientBegin => UiTheme.Surface;
-        public override Color ImageMarginGradientMiddle => UiTheme.Surface;
-        public override Color ImageMarginGradientEnd => UiTheme.Surface;
+        public PillMenuRenderer()
+            : base(new ProfessionalColorTable())
+        {
+        }
+
+        protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
+        {
+            UiTheme.ConfigureFastGraphics(e.Graphics);
+            var rect = new Rectangle(0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
+            using var path = UiTheme.CreateRoundedRectPath(rect, 10);
+            using var brush = new SolidBrush(UiTheme.Surface);
+            e.Graphics.FillPath(brush, path);
+        }
+
+        protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+        {
+            var rect = new Rectangle(0, 0, e.ToolStrip.Width - 1, e.ToolStrip.Height - 1);
+            UiTheme.DrawContinuousRoundedOutline(e.Graphics, rect, 10, Color.FromArgb(76, 86, 118));
+        }
+
+        protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
+        {
+            if (e.Item is not ToolStripMenuItem menuItem)
+            {
+                base.OnRenderMenuItemBackground(e);
+                return;
+            }
+
+            var selected = menuItem.Selected;
+            var checkedItem = menuItem.Checked;
+            const int horizontalInset = 0;
+            const int verticalInset = 0;
+            var bounds = new Rectangle(
+                horizontalInset,
+                verticalInset,
+                Math.Max(1, e.Item.Width - (horizontalInset * 2)),
+                Math.Max(1, e.Item.Height - (verticalInset * 2)));
+            var fill = selected
+                ? UiTheme.AccentSecondary
+                : checkedItem
+                    ? Color.FromArgb(55, 67, 105)
+                    : UiTheme.Surface;
+            var border = selected
+                ? UiTheme.AccentBorder
+                : checkedItem
+                    ? Color.FromArgb(92, 112, 155)
+                    : UiTheme.Surface;
+
+            UiTheme.ConfigureFastGraphics(e.Graphics);
+            using var path = UiTheme.CreateRoundedRectPath(bounds, 10);
+            using var brush = new SolidBrush(fill);
+            e.Graphics.FillPath(brush, path);
+
+            if (selected || checkedItem)
+            {
+                UiTheme.DrawContinuousRoundedOutline(e.Graphics, bounds, 10, border);
+            }
+        }
+
+        protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+        {
+            e.TextColor = UiTheme.TextPrimary;
+            e.TextRectangle = new Rectangle(
+                e.TextRectangle.X + 4,
+                e.TextRectangle.Y,
+                Math.Max(1, e.TextRectangle.Width - 4),
+                e.TextRectangle.Height);
+            base.OnRenderItemText(e);
+        }
     }
 }
 
