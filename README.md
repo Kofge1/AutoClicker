@@ -26,6 +26,7 @@ It includes advanced click patterns, humanized clicking, profile management, cus
 ### Profiles
 <img width="1098" height="634" alt="image" src="https://github.com/user-attachments/assets/e55a5567-2996-43d7-9260-8cfc700de74e" />
 
+### Window Targeting & Options
 <img width="1099" height="634" alt="image" src="https://github.com/user-attachments/assets/1a9b03f1-e1c9-4e9d-95e3-faa29e6c5437" />
 
 ## Features
