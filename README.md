@@ -38,7 +38,11 @@ Free • Portable • Open Source • Built with C#
 
 ## Download
 
-➡ Download the latest version from the GitHub Releases page.
+[![Download Latest Release](https://img.shields.io/github/v/release/Kofge1/Kofge-Clicker?label=Download%20Latest%20Release&style=for-the-badge)](https://github.com/Kofge1/Kofge-Clicker/releases/latest)
+
+Download the latest Windows build from the GitHub Releases page:
+
+➡️ **[Download Kofge-Clicker](https://github.com/Kofge1/Kofge-Clicker/releases/latest)**
 
 ## Build From Source
 
