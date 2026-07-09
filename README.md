@@ -19,8 +19,6 @@ It includes advanced click patterns, humanized clicking, profile management, cus
 
 <img width="1098" height="634" alt="image" src="https://github.com/user-attachments/assets/e78e88ae-afcf-4da7-9c4c-99a5951642f0" />
 
-<img width="1098" height="633" alt="image" src="https://github.com/user-attachments/assets/39a2c0d6-8298-4844-8f2b-5a5309d74357" />
-
 <img width="1100" height="634" alt="image" src="https://github.com/user-attachments/assets/bab677c3-c778-4fde-9826-49c95cac533a" />
 
 <img width="1098" height="634" alt="image" src="https://github.com/user-attachments/assets/e55a5567-2996-43d7-9260-8cfc700de74e" />
