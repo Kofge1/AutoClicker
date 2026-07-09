@@ -1,28 +1,59 @@
 # Kofge-Clicker
 
-A lightweight Windows clicker with profiles, hotkeys, humanized CPS, click patterns, tray status indicator and window targeting.
+### Advanced Windows Auto Clicker with Humanized Clicking, Profiles and Window Targeting
 
-The first launch may take a little longer while Windows prepares the self-contained executable.
+Free • Portable • Open Source • Built with C#
+
+[![Download](https://img.shields.io/badge/Download-Latest%20Release-success?style=for-the-badge)](https://github.com/Kofge1/Kofge-Clicker/releases/latest)
+
+![Platform](https://img.shields.io/badge/Windows-10%20%7C%2011-blue?style=for-the-badge) ![.NET](https://img.shields.io/badge/.NET-8-purple?style=for-the-badge) ![License](https://img.shields.io/github/license/Kofge1/Kofge-Clicker?style=for-the-badge)
+
+<img width="1099" height="634" alt="image" src="https://github.com/user-attachments/assets/4df56db5-5a00-4de8-8fad-e1312fd5bb8a" />
+
+
+Kofge-Clicker is a free and open-source Windows auto clicker designed for precision, flexibility and ease of use.
+
+It includes advanced click patterns, humanized clicking, profile management, customizable hotkeys and window targeting while remaining lightweight and fully portable.
 
 ## Features
 
-- Adjustable CPS from 1 to 100.
-- Hold and Toggle modes.
-- Left and right mouse button automation.
-- Humanized clicking.
-- Click patterns: Standard, Burst, Double and Hold+Burst.
-- Rate behavior: Locked and Amplified.
-- Profiles for saving and switching setups.
-- Custom hotkeys for Panic Stop, Show Window, Toggle Power and Next Profile.
-- Window targeting: click only while a selected app/window is active.
-- Tray support with an ON/OFF status indicator.
-- Settings, profiles and logs are stored in `%LocalAppData%\Kofge-Clicker`, so the executable folder stays clean.
+### Clicking
+- Adjustable CPS (1–100)
+- Humanized Clicking
+- Standard
+- Burst
+- Double
+- Hold+Burst
+
+---
+
+### Profiles
+- Save unlimited profiles
+- Switch instantly
+
+---
+
+### Automation
+- Window Targeting
+- Toggle Mode
+- Hold Mode
+- Left / Right Mouse
+
+---
+
+### Hotkeys
+- Panic Stop
+- Toggle
+- Show Window
+- Next Profile
 
 ## Download
 
-The easiest way to use the app is to download the latest build from the GitHub Releases page.
+[![Download Latest Release](https://img.shields.io/github/v/release/Kofge1/Kofge-Clicker?label=Download%20Latest%20Release&style=for-the-badge)](https://github.com/Kofge1/Kofge-Clicker/releases/latest)
 
-If Windows SmartScreen appears, choose **More info** and **Run anyway** only if you trust this project and downloaded it from the official repository.
+Download the latest Windows build from the GitHub Releases page:
+
+➡️ **[Download Kofge-Clicker](https://github.com/Kofge1/Kofge-Clicker/releases/latest)**
 
 ## Build From Source
 
@@ -34,13 +65,13 @@ Requirements:
 Build:
 
 ```powershell
-dotnet build .\Kofge-Clicker\Kofge-Clicker.csproj
+dotnet build .\AutoClickerCs\AutoClickerCs.csproj
 ```
 
 Publish a self-contained Windows executable:
 
 ```powershell
-dotnet publish .\Kofge-Clicker\Kofge-Clicker.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o .\publish
+dotnet publish .\AutoClickerCs\AutoClickerCs.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o .\publish
 ```
 
 ## Data Location
@@ -48,7 +79,7 @@ dotnet publish .\Kofge-Clicker\Kofge-Clicker.csproj -c Release -r win-x64 --self
 Kofge-Clicker stores profiles, settings and logs here:
 
 ```text
-%LocalAppData%\Kofge-Clicker
+%LocalAppData%\AutoClicker
 ```
 
 This folder contains:
