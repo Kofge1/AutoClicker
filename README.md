@@ -1,18 +1,12 @@
-[![Download](https://img.shields.io/badge/Download-Latest%20Release-success?style=for-the-badge)](https://github.com/Kofge1/Kofge-Clicker/releases/latest)
-
 # Kofge-Clicker
-
-![GitHub release](https://img.shields.io/github/v/release/Kofge1/Kofge-Clicker?style=for-the-badge)
-
-![License](https://img.shields.io/github/license/Kofge1/Kofge-Clicker?style=for-the-badge)
-
-![Platform](https://img.shields.io/badge/Windows-10%20%7C%2011-blue?style=for-the-badge)
-
-![.NET](https://img.shields.io/badge/.NET-8-purple?style=for-the-badge)
 
 ### Advanced Windows Kofge-Clicker with Humanized Clicking, Profiles and Window Targeting
 
 Free • Portable • Open Source • Built with C#
+
+[![Download](https://img.shields.io/badge/Download-Latest%20Release-success?style=for-the-badge)](https://github.com/Kofge1/Kofge-Clicker/releases/latest)
+
+![GitHub release](https://img.shields.io/github/v/release/Kofge1/Kofge-Clicker?style=for-the-badge) ![License](https://img.shields.io/github/license/Kofge1/Kofge-Clicker?style=for-the-badge) ![Platform](https://img.shields.io/badge/Windows-10%20%7C%2011-blue?style=for-the-badge) ![.NET](https://img.shields.io/badge/.NET-8-purple?style=for-the-badge)
 
 ## Features
 
