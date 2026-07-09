@@ -1,3 +1,5 @@
+[![Download](https://img.shields.io/badge/Download-Latest%20Release-success?style=for-the-badge)](https://github.com/Kofge1/Kofge-Clicker/releases/latest)
+
 # Kofge-Clicker
 
 ![GitHub release](https://img.shields.io/github/v/release/Kofge1/Kofge-Clicker?style=for-the-badge)
