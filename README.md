@@ -49,11 +49,11 @@ It includes advanced click patterns, humanized clicking, profile management, cus
 
 ## Download
 
-[![Download Latest Release](https://img.shields.io/github/v/release/Kofge1/Kofge-Clicker?label=Download%20Latest%20Release&style=for-the-badge)](https://github.com/Kofge1/Kofge-Clicker/releases/latest)
+[![Download Latest Release](https://img.shields.io/github/v/release/Kofge1/AutoClicker?label=Download%20Latest%20Release&style=for-the-badge)](https://github.com/Kofge1/AutoClicker/releases/latest)
 
 Download the latest Windows build from the GitHub Releases page:
 
-➡️ **[Download Kofge-Clicker](https://github.com/Kofge1/Kofge-Clicker/releases/latest)**
+➡️ **[Download Kofge-Clicker](https://github.com/Kofge1/AutoClicker/releases/latest)**
 
 ## Build From Source
 
