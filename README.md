@@ -1,6 +1,6 @@
 # Kofge-Clicker
 
-### Advanced Windows Kofge-Clicker with Humanized Clicking, Profiles and Window Targeting
+### Advanced Windows Auto Clicker with Humanized Clicking, Profiles and Window Targeting
 
 Free • Portable • Open Source • Built with C#
 
