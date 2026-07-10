@@ -92,7 +92,7 @@ dotnet publish .\Kofge-Clicker\Kofge-Clicker.csproj -c Release -r win-x64 --self
 Kofge-Clicker stores profiles, settings and logs here:
 
 ```text
-%LocalAppData%\AutoClicker
+%LocalAppData%\Kofge-Clicker
 ```
 
 This folder contains:
