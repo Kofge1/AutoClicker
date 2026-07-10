@@ -111,6 +111,7 @@ public sealed partial class MainForm : Form
     private CancellationTokenSource? _clickCts;
     private Icon? _enabledStatusIcon;
     private Icon? _disabledStatusIcon;
+    private Icon? _activeStatusIcon;
     private bool _settingsSaveQueued;
     private bool _queuedStartupShortcutSync;
     private bool _windowTraySettingsSaveQueued;
@@ -181,6 +182,7 @@ public sealed partial class MainForm : Form
             _inputHook.Dispose();
             _enabledStatusIcon?.Dispose();
             _disabledStatusIcon?.Dispose();
+            _activeStatusIcon?.Dispose();
             _baseAppIcon.Dispose();
         }
 

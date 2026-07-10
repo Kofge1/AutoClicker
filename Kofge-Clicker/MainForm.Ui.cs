@@ -910,15 +910,17 @@ public sealed partial class MainForm
 
     private void UpdateStatusIcon()
     {
-        var statusIcon = _settings.AutoEnabled
-            ? _enabledStatusIcon ??= CreateStatusIcon(enabled: true)
-            : _disabledStatusIcon ??= CreateStatusIcon(enabled: false);
+        var statusIcon = !_settings.AutoEnabled
+            ? _disabledStatusIcon ??= CreateStatusIcon(StatusIconState.Disabled)
+            : _isActive
+                ? _activeStatusIcon ??= CreateStatusIcon(StatusIconState.Active)
+                : _enabledStatusIcon ??= CreateStatusIcon(StatusIconState.Enabled);
 
         Icon = statusIcon;
         _trayIcon.Icon = statusIcon;
     }
 
-    private Icon CreateStatusIcon(bool enabled)
+    private Icon CreateStatusIcon(StatusIconState state)
     {
         const int size = 32;
         using var bitmap = new Bitmap(size, size);
@@ -930,7 +932,11 @@ public sealed partial class MainForm
             graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
             graphics.DrawIcon(_baseAppIcon, new Rectangle(0, 0, size, size));
 
-            if (enabled)
+            if (state == StatusIconState.Active)
+            {
+                DrawStatusBolt(graphics);
+            }
+            else if (state == StatusIconState.Enabled)
             {
                 DrawStatusCheck(graphics);
             }
@@ -950,6 +956,13 @@ public sealed partial class MainForm
         {
             NativeMethods.DestroyIcon(handle);
         }
+    }
+
+    private enum StatusIconState
+    {
+        Disabled,
+        Enabled,
+        Active
     }
 
     private static void DrawStatusCheck(Graphics graphics)
@@ -992,6 +1005,39 @@ public sealed partial class MainForm
 
         DrawCrossLines(graphics, shadowPen);
         DrawCrossLines(graphics, crossPen);
+    }
+
+    private static void DrawStatusBolt(Graphics graphics)
+    {
+        PointF[] shadowPoints =
+        [
+            new(25.0f, 18.0f),
+            new(19.6f, 26.2f),
+            new(24.1f, 26.2f),
+            new(21.1f, 31.2f),
+            new(30.4f, 22.7f),
+            new(25.8f, 22.7f)
+        ];
+        PointF[] boltPoints =
+        [
+            new(24.8f, 17.6f),
+            new(19.6f, 25.6f),
+            new(24.0f, 25.6f),
+            new(21.2f, 30.6f),
+            new(30.0f, 22.2f),
+            new(25.5f, 22.2f)
+        ];
+
+        using var shadowBrush = new SolidBrush(Color.FromArgb(220, 0, 0, 0));
+        using var boltBrush = new SolidBrush(Color.FromArgb(255, 212, 54));
+        using var borderPen = new Pen(Color.FromArgb(255, 245, 148), 1.2f)
+        {
+            LineJoin = LineJoin.Round
+        };
+
+        graphics.FillPolygon(shadowBrush, shadowPoints);
+        graphics.FillPolygon(boltBrush, boltPoints);
+        graphics.DrawPolygon(borderPen, boltPoints);
     }
 
     private static void DrawCrossLines(Graphics graphics, Pen pen)
