@@ -53,6 +53,7 @@ public sealed partial class MainForm
             {
                 if (!CanClickInCurrentContext())
                 {
+                    SetClickingInCurrentContext(false);
                     ReleaseClickerMouseState(ClickStopReason.ContextLost);
                     nextClick = HighResNowMs() + 10;
                     Thread.Sleep(10);
@@ -72,16 +73,39 @@ public sealed partial class MainForm
                     break;
                 }
 
+                if (!CanClickInCurrentContext())
+                {
+                    SetClickingInCurrentContext(false);
+                    ReleaseClickerMouseState(ClickStopReason.ContextLost);
+                    nextClick = HighResNowMs() + 10;
+                    Thread.Sleep(10);
+                    continue;
+                }
+
+                SetClickingInCurrentContext(true);
                 var sentClicks = SendLowLevelClick(token, sessionVersion);
                 if (sentClicks <= 0)
                 {
+                    SetClickingInCurrentContext(false);
+                    if (!token.IsCancellationRequested
+                        && sessionVersion == Volatile.Read(ref _clickSessionVersion)
+                        && _isActive
+                        && _settings.AutoEnabled)
+                    {
+                        nextClick = HighResNowMs() + 10;
+                        Thread.Sleep(10);
+                        continue;
+                    }
+
                     break;
                 }
+
                 nextClick += GetScheduledClickIntervalMs(sentClicks);
             }
         }
         finally
         {
+            SetClickingInCurrentContext(false);
             InputDiagnostics.Write($"ClickLoopExit session={sessionVersion} current={Volatile.Read(ref _clickSessionVersion)} active={_isActive} enabled={_settings.AutoEnabled}");
             ReleaseClickerMouseState(ClickStopReason.Manual);
         }
@@ -90,6 +114,7 @@ public sealed partial class MainForm
     private void StopClicking(ClickStopReason reason, bool updateStatus = true)
     {
         _isActive = false;
+        SetClickingInCurrentContext(false);
         var sessionVersion = Interlocked.Increment(ref _clickSessionVersion);
         InputDiagnostics.Write($"StopClicking reason={reason} session={sessionVersion} click={_settings.ClickButton} held={_mouseButtonHeldByClicker}");
         _clickCts?.Cancel();
@@ -103,6 +128,28 @@ public sealed partial class MainForm
     private void StopClicking(bool updateStatus = true)
     {
         StopClicking(ClickStopReason.Manual, updateStatus);
+    }
+
+    private void SetClickingInCurrentContext(bool value)
+    {
+        if (_isClickingInCurrentContext == value)
+        {
+            return;
+        }
+
+        _isClickingInCurrentContext = value;
+        if (!IsHandleCreated || IsDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            BeginInvoke((MethodInvoker)(() => UpdateStatus(refreshTrayMenu: false)));
+        }
+        catch (InvalidOperationException)
+        {
+        }
     }
 
     private int SendLowLevelClick(CancellationToken token, int sessionVersion)

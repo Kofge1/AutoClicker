@@ -912,7 +912,7 @@ public sealed partial class MainForm
     {
         var statusIcon = !_settings.AutoEnabled
             ? _disabledStatusIcon ??= CreateStatusIcon(StatusIconState.Disabled)
-            : _isActive
+            : _isActive && _isClickingInCurrentContext
                 ? _activeStatusIcon ??= CreateStatusIcon(StatusIconState.Active)
                 : _enabledStatusIcon ??= CreateStatusIcon(StatusIconState.Enabled);
 

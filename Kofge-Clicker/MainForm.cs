@@ -90,6 +90,7 @@ public sealed partial class MainForm : Form
     private bool _targetWindowListBusy;
     private bool _allowClose;
     private bool _isActive;
+    private bool _isClickingInCurrentContext;
     private bool _startupCompleted;
     private bool _pendingCpsCommit;
     private double _intervalMs = 1000.0 / 15.0;
