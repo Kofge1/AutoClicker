@@ -107,11 +107,11 @@ This project is currently free to use.
 
 If you want to support development, you can donate via USDT:
 
-**[Donation Alerts](https://www.donationalerts.com/r/kofge)**
 ```text
 ERC20 - 0x5701793453c1d73a527af74f9b615717052c4738
 TRC20 - TMTvgkSzEARmZ81HG2SE7nRf2KbC63tcBJ
 ```
+**[Donation Alerts](https://www.donationalerts.com/r/kofge)**
 
 Please double-check the network before sending. Transfers sent through the wrong network may be lost.
 
