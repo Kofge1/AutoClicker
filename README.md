@@ -108,6 +108,7 @@ This project is currently free to use.
 If you want to support development, you can donate via USDT:
 
 ```text
+https://www.donationalerts.com/r/kofge
 ERC20 - 0x5701793453c1d73a527af74f9b615717052c4738
 TRC20 - TMTvgkSzEARmZ81HG2SE7nRf2KbC63tcBJ
 ```
